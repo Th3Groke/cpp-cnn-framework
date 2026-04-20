@@ -14,19 +14,25 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     add_compile_options(-Wall -Wextra -Wpedantic -O3)
 endif()
 
-# 5. Find OpenMP for multi-threading (speeds up matrix multiplication)
-find_package(OpenMP)
+# 5. Tell CMake where to find your header files
+include_directories(${CMAKE_SOURCE_DIR}/inc)
 
-# 6. Tell CMake where to find your header files
-include_directories(${CMAKE_SOURCE_DIR}/include)
+# 6. Collect all your source files
+file(GLOB SOURCES "src/*.cpp" "main.cpp")
 
-# 7. Collect all your source files
-file(GLOB SOURCES "src/*.cpp")
-
-# 8. Create the executable
+# 7. Create the executable
 add_executable(NeuralNet ${SOURCES})
 
-# 9. Link OpenMP if it was found
-if(OpenMP_CXX_FOUND)
-    target_link_libraries(NeuralNet PUBLIC OpenMP::OpenMP_CXX)
+# 8. The OpenMP Windows Toolchain Fix
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    # Bypass find_package to prevent Strawberry Perl GCC contamination.
+    # Force LLVM/Clang to use its native OpenMP runtime.
+    target_compile_options(NeuralNet PRIVATE -fopenmp)
+    target_link_options(NeuralNet PRIVATE -fopenmp)
+else()
+    # Standard fallback for pure Linux/GCC environments
+    find_package(OpenMP)
+    if(OpenMP_CXX_FOUND)
+        target_link_libraries(NeuralNet PUBLIC OpenMP::OpenMP_CXX)
+    endif()
 endif()
