@@ -1,13 +1,11 @@
 #ifndef TENSOR_H
 #define TENSOR_H
 
-#include <vector>
+#include <cassert>
 #include <stdexcept>
-#include <iostream>
 #include <string>
-
-class Tensor
-{
+#include <vector>
+class Tensor {
 private:
   size_t totalBatchSize;
   size_t totalChannels;
@@ -22,9 +20,10 @@ private:
   std::vector<float> data;
   std::vector<float> gradient;
 
-  void validateShapes(const Tensor& other) const {
-    if (totalBatchSize != other.totalBatchSize || totalChannels != other.totalChannels ||
-        totalRows != other.totalRows || totalColumns != other.totalColumns) {
+  void validateShapes(const Tensor &other) const {
+    if (totalBatchSize != other.totalBatchSize ||
+        totalChannels != other.totalChannels || totalRows != other.totalRows ||
+        totalColumns != other.totalColumns) {
       throw std::runtime_error("Tensor shape mismatch!");
     }
   }
@@ -36,19 +35,34 @@ public:
   ~Tensor() = default;
 
   inline size_t Index(size_t batchIndex, size_t channel, size_t row,
-                      size_t column) const
-  {
+                      size_t column) const {
     return (batchIndex * stride_N) + (channel * stride_C) + (row * stride_H) +
            column;
   }
 
   // Accessors for data
-  float& operator()(size_t n, size_t c, size_t h, size_t w) { return data[Index(n, c, h, w)]; }
-  const float& operator()(size_t n, size_t c, size_t h, size_t w) const { return data[Index(n, c, h, w)]; }
+  float &operator()(size_t n, size_t c, size_t h, size_t w) {
+    size_t idx = Index(n, c, h, w);
+    assert(idx < data.size() && "Tensor index out of bounds!");
+    return data[idx];
+  }
+  const float &operator()(size_t n, size_t c, size_t h, size_t w) const {
+    size_t idx = Index(n, c, h, w);
+    assert(idx < data.size() && "Tensor index out of bounds!");
+    return data[idx];
+  }
 
   // Accessors for gradients
-  float& grad(size_t n, size_t c, size_t h, size_t w) { return gradient[Index(n, c, h, w)]; }
-  const float& grad(size_t n, size_t c, size_t h, size_t w) const { return gradient[Index(n, c, h, w)]; }
+  float &grad(size_t n, size_t c, size_t h, size_t w) {
+    size_t idx = Index(n, c, h, w);
+    assert(idx < gradient.size() && "Gradient index out of bounds!");
+    return gradient[idx];
+  }
+  const float &grad(size_t n, size_t c, size_t h, size_t w) const {
+    size_t idx = Index(n, c, h, w);
+    assert(idx < gradient.size() && "Gradient index out of bounds!");
+    return gradient[idx];
+  }
 
   // Shape getters
   size_t getBatchSize() const { return totalBatchSize; }
@@ -57,18 +71,18 @@ public:
   size_t getColumns() const { return totalColumns; }
 
   // Math operations
-  Tensor& operator+=(const Tensor& other);
-  Tensor& operator-=(const Tensor& other);
-  Tensor& operator*=(float scalar);
-  
-  // Element-wise multiplication (Hadamard product)
-  Tensor& operator*=(const Tensor& other);
+  Tensor &operator+=(const Tensor &other);
+  Tensor &operator-=(const Tensor &other);
+  Tensor &operator*=(float scalar);
 
-  static Tensor MatMul(const Tensor& A, const Tensor& B);
+  // Element-wise multiplication (Hadamard product)
+  Tensor &operator*=(const Tensor &other);
+
+  static Tensor matmul(const Tensor &A, const Tensor &B);
 
   void FillRandomNormal(float mean, float std_dev);
   void ZeroGradients();
-  void Print(const std::string& name = "Tensor") const;
+  void Print(const std::string &name = "Tensor") const;
 };
 
 #endif

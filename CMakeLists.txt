@@ -25,7 +25,6 @@ add_executable(NeuralNet ${SOURCES})
 
 # 8. The OpenMP Windows Toolchain Fix
 if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    # Bypass find_package to prevent Strawberry Perl GCC contamination.
     # Force LLVM/Clang to use its native OpenMP runtime.
     target_compile_options(NeuralNet PRIVATE -fopenmp)
     target_link_options(NeuralNet PRIVATE -fopenmp)
@@ -35,4 +34,28 @@ else()
     if(OpenMP_CXX_FOUND)
         target_link_libraries(NeuralNet PUBLIC OpenMP::OpenMP_CXX)
     endif()
+endif()
+# ==========================================
+# TESTING CONFIGURATION (Manual Catch2)
+# ==========================================
+
+# Create the test executable. 
+# We must compile the Catch2 .cpp file alongside your tests and your Tensor source.
+add_executable(RunTests 
+    tests/test_tensor.cpp 
+    tests/test_loader.cpp
+    tests/vendor/catch_amalgamated.cpp 
+    src/tensor.cpp
+)
+
+# Tell CMake where to find your headers AND the new Catch2 header
+target_include_directories(RunTests PRIVATE 
+    ${CMAKE_SOURCE_DIR}/inc
+    ${CMAKE_SOURCE_DIR}/tests/vendor
+)
+
+# OpenMP Windows Toolchain Fix (If you are using Clang)
+if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    target_compile_options(RunTests PRIVATE -fopenmp)
+    target_link_options(RunTests PRIVATE -fopenmp)
 endif()
