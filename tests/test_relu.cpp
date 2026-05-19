@@ -31,7 +31,7 @@ TEST_CASE("ReLU Backward Pass routes gradients correctly", "[relu][backward]") {
   grad_out(0, 0, 0, 0) = 5.0f; // Should pass through
   grad_out(0, 0, 0, 1) = 3.0f; // Should be killed
 
-  Tensor grad_in = relu.Backward(grad_out, 0.01f);
+  Tensor grad_in = relu.Backward(grad_out);
 
   REQUIRE_THAT(grad_in(0, 0, 0, 0), Catch::Matchers::WithinRel(5.0f, 0.0001f));
   REQUIRE_THAT(grad_in(0, 0, 0, 1), Catch::Matchers::WithinRel(0.0f, 0.0001f));

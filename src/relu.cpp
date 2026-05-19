@@ -18,7 +18,7 @@ Tensor ReLU::Forward(const Tensor &input) {
   return output;
 }
 
-Tensor ReLU::Backward(const Tensor &grad_out, float learning_rate) {
+Tensor ReLU::Backward(const Tensor &grad_out) {
   Tensor grad_input = Tensor(grad_out);
   for (size_t n = 0; n < input_cache.getBatchSize(); n++) {
     for (size_t c = 0; c < input_cache.getChannels(); c++) {
