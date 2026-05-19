@@ -44,7 +44,9 @@ endif()
 add_executable(RunTests 
     tests/test_tensor.cpp 
     tests/test_loader.cpp
+    tests/test_relu.cpp
     tests/vendor/catch_amalgamated.cpp 
+    src/relu.cpp
     src/tensor.cpp
 )
 

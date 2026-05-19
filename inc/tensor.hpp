@@ -12,10 +12,10 @@ private:
   size_t totalRows;
   size_t totalColumns;
 
-  size_t stride_W; // The column stride
-  size_t stride_H; // The row stride
-  size_t stride_C; // The channel stride
   size_t stride_N; // The batch stride
+  size_t stride_C; // The channel stride
+  size_t stride_H; // The row stride
+  size_t stride_W; // The column stride
 
   std::vector<float> data;
   std::vector<float> gradient;
@@ -29,6 +29,9 @@ private:
   }
 
 public:
+  Tensor()
+      : totalBatchSize(0), totalChannels(0), totalRows(0), totalColumns(0),
+        stride_N(0), stride_C(0), stride_H(0), stride_W(0) {};
   Tensor(size_t totalBatchSize, size_t totalChannels, size_t totalRows,
          size_t totalColumns);
 

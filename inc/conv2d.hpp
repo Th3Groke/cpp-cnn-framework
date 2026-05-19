@@ -1,0 +1,21 @@
+#include "layer.hpp"
+#include "tensor.hpp"
+
+class Conv2d : public Layer {
+private:
+  int num_filters;
+  int input_channels;
+  int filter_size;
+
+  Tensor filters;
+  Tensor input_cache;
+  Tensor biases;
+
+public:
+  Conv2d(int num_filters, int input_channels, int filter_size);
+  Tensor Forward(const Tensor &input) override;
+  Tensor Backward(const Tensor &grad_out) override;
+  std::string GetLayerName() const override { return "Conv2D"; };
+  Tensor &GetFilters() { return filters; };
+  Tensor &GetBiases() { return biases; };
+};
