@@ -30,9 +30,13 @@ void Tensor::FillRandomNormal(float mean, float std_dev) {
   }
 }
 
-void Tensor::ZeroGradients() {
-  std::fill(gradient.begin(), gradient.end(), 0.0f);
+void Tensor::Step(float learning_rate) {
+  for (size_t i = 0; i < data.size(); i++) {
+    data[i] -= learning_rate * gradient[i];
+  }
 }
+
+void Tensor::ZeroGrad() { std::fill(gradient.begin(), gradient.end(), 0.0f); }
 
 Tensor &Tensor::operator+=(const Tensor &other) {
   validateShapes(other);

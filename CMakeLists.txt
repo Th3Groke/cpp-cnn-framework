@@ -45,11 +45,13 @@ add_executable(RunTests
     tests/test_tensor.cpp 
     tests/test_loader.cpp
     tests/test_relu.cpp
-    tests/vendor/catch_amalgamated.cpp 
+    tests/test_sdg.cpp
     tests/test_conv2d.cpp
+    tests/vendor/catch_amalgamated.cpp 
     src/relu.cpp
     src/tensor.cpp
     src/conv2d.cpp
+    src/sgd.cpp
 )
 
 # Tell CMake where to find your headers AND the new Catch2 header

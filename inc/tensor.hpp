@@ -84,7 +84,9 @@ public:
   static Tensor matmul(const Tensor &A, const Tensor &B);
 
   void FillRandomNormal(float mean, float std_dev);
-  void ZeroGradients();
+
+  void Step(float learning_rate);
+  void ZeroGrad();
   void Print(const std::string &name = "Tensor") const;
 };
 

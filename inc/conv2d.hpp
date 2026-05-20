@@ -18,4 +18,7 @@ public:
   std::string GetLayerName() const override { return "Conv2D"; };
   Tensor &GetFilters() { return filters; };
   Tensor &GetBiases() { return biases; };
+  std::vector<Tensor *> GetParameters() override {
+    return {&filters, &biases};
+  };
 };
