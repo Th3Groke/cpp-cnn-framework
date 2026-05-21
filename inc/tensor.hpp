@@ -82,6 +82,7 @@ public:
   Tensor &operator*=(const Tensor &other);
 
   static Tensor matmul(const Tensor &A, const Tensor &B);
+  void Fill(float value);
 
   void FillRandomNormal(float mean, float std_dev);
 

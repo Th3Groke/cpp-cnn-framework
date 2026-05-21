@@ -1,4 +1,5 @@
 #include "../inc/tensor.hpp"
+#include <algorithm>
 #include <iomanip>
 #include <iostream>
 #include <random>
@@ -29,6 +30,8 @@ void Tensor::FillRandomNormal(float mean, float std_dev) {
     val = nDist(mt);
   }
 }
+
+void Tensor::Fill(float value) { std::fill(data.begin(), data.end(), value); }
 
 void Tensor::Step(float learning_rate) {
   for (size_t i = 0; i < data.size(); i++) {
