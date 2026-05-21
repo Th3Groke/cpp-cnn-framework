@@ -2,6 +2,7 @@
 #define TENSOR_H
 
 #include <cassert>
+#include <cstdlib>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -44,6 +45,8 @@ public:
   }
 
   // Accessors for data
+  const std::vector<float> &GetData() const { return data; };
+  void SetData(const std::vector<float> &vec) { data = vec; }
   float &operator()(size_t n, size_t c, size_t h, size_t w) {
     size_t idx = Index(n, c, h, w);
     assert(idx < data.size() && "Tensor index out of bounds!");
@@ -56,6 +59,8 @@ public:
   }
 
   // Accessors for gradients
+  std::vector<float> &GetGradients() { return gradient; };
+
   float &grad(size_t n, size_t c, size_t h, size_t w) {
     size_t idx = Index(n, c, h, w);
     assert(idx < gradient.size() && "Gradient index out of bounds!");

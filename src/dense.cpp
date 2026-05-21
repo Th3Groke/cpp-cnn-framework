@@ -15,7 +15,6 @@ Tensor Dense::Forward(const Tensor &input) {
   input_cache = input;
   size_t batch_size = input.getBatchSize();
   Tensor output(batch_size, out_features, 1, 1);
-
   for (size_t n = 0; n < batch_size; n++) {
     for (size_t out = 0; out < out_features; out++) {
       float neuron_sum = biases(0, out, 0, 0);
