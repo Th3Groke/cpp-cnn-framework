@@ -4,7 +4,7 @@
 
 TEST_CASE("Conv2D Memory Allocation and Initialization", "[conv2d][memory]") {
   // Setup: 16 filters, 3 color channels, 3x3 sliding window
-  Conv2d conv(16, 3, 3);
+  Conv2d conv(3, 16, 3);
 
   SECTION("Layer Identity Contract") {
     REQUIRE(conv.GetLayerName() == "Conv2D");
@@ -80,7 +80,7 @@ TEST_CASE("Conv2D Forward Pass Math Verification", "[conv2d][forward]") {
 }
 TEST_CASE("Conv2D Backward Pass Bias Update", "[conv2d][backward][bias]") {
   // 2 Filters, 1 Input Channel, 3x3 Window
-  Conv2d conv(2, 1, 3);
+  Conv2d conv(1, 2, 3);
 
   Tensor dummy_input(1, 1, 4, 4);
   conv.Forward(dummy_input);

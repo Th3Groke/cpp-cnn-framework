@@ -1,7 +1,7 @@
 #include "../inc/conv2d.hpp"
 #include <cstddef>
 
-Conv2d::Conv2d(int num_filters, int input_channels, int filter_size)
+Conv2d::Conv2d(int input_channels, int num_filters, int filter_size)
     : num_filters(num_filters), input_channels(input_channels),
       filter_size(filter_size),
       filters(num_filters, input_channels, filter_size, filter_size),

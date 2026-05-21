@@ -12,7 +12,7 @@ private:
   Tensor biases;
 
 public:
-  Conv2d(int num_filters, int input_channels, int filter_size);
+  Conv2d(int input_channels, int num_filters, int filter_size);
   Tensor Forward(const Tensor &input) override;
   Tensor Backward(const Tensor &grad_out) override;
   std::string GetLayerName() const override { return "Conv2D"; };
