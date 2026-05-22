@@ -23,7 +23,20 @@ private:
 public:
   Cifar10Loader() = default;
 
-  void LoadCifar10(Tensor &tensor, std::string &filepath,
+  int GetLabel(int index) { return labels[index]; }
+  Tensor GetImageAsTensor(const Tensor &dataset, int index) {
+    Tensor single_image(1, 3, 32, 32);
+    for (int c = 0; c < 3; c++) {
+      for (int h = 0; h < 32; h++) {
+        for (int w = 0; w < 32; w++) {
+          single_image(0, c, h, w) = dataset(index, c, h, w);
+        }
+      }
+    }
+    return single_image;
+  }
+
+  void LoadCifar10(Tensor &tensor, const std::string &filepath,
                    int batchSize = 10000) {
     std::ifstream is;
     is.open(filepath, std::ios::binary);
