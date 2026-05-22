@@ -36,8 +36,7 @@ public:
     return single_image;
   }
 
-  void LoadCifar10(Tensor &tensor, const std::string &filepath,
-                   int batchSize = 10000) {
+  void LoadCifar10(Tensor &tensor, const std::string &filepath) {
     std::ifstream is;
     is.open(filepath, std::ios::binary);
     if (!is) {
@@ -48,7 +47,7 @@ public:
     const int numRows = 32;
     const int numColumns = 32;
     std::vector<uint8_t> image_buffer = std::vector<uint8_t>(3072);
-    for (int i = 0; i < batchSize; i++) {
+    for (size_t i = 0; i < tensor.getBatchSize(); i++) {
       uint8_t label;
       is.read(reinterpret_cast<char *>(&label), 1);
       labels.push_back(label);

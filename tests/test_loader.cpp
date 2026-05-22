@@ -30,7 +30,7 @@ TEST_CASE("CIFAR-10 Loader correctly reads and normalizes binary bytes",
     Cifar10Loader loader;
 
     // Execute the loader on our 1-image mock file
-    loader.LoadCifar10(t, mockFilePath, 1);
+    loader.LoadCifar10(t, mockFilePath);
 
     // Verify: Did 127 turn into ~0.498f?
     float expectedFloat = 127.0f / 255.0f;
