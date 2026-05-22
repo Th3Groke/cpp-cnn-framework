@@ -17,4 +17,6 @@ public:
   Tensor Backward(Tensor grad_out);
 
   std::vector<Tensor *> GetParameters();
+  void SaveWeights(const std::string &filepath);
+  void LoadWeights(const std::string &filepath);
 };

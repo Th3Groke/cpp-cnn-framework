@@ -52,6 +52,7 @@ add_executable(RunTests
     tests/test_flatten.cpp
     tests/test_network.cpp
     tests/test_softmax.cpp
+    tests/test_IO.cpp
     tests/vendor/catch_amalgamated.cpp 
     src/relu.cpp
     src/tensor.cpp

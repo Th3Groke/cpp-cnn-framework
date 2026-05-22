@@ -10,9 +10,11 @@
 #include <cmath>
 #include <iostream>
 
+const int epochs = 20;
+const int num_of_samples = 10000;
+const bool TRAIN = false;
+const std::string weights_path = "trained/1.bin";
 int main() {
-  const int epochs = 20;
-  const int num_of_samples = 10000;
 
   std::cout << "Loading CIFAR-10..." << std::endl;
   const std::string batch_path = "data/data_batch_1.bin";
@@ -36,59 +38,65 @@ int main() {
 
   SGD optimizer(net.GetParameters(), 0.0001f);
 
-  std::cout << "Starting training..." << std::endl;
-  for (int epoch = 0; epoch < epochs; epoch++) {
-    float total_loss = 0.0f;
-    int correct_predictions = 0;
+  if (TRAIN) {
+    std::cout << "Starting training..." << std::endl;
+    for (int epoch = 0; epoch < epochs; epoch++) {
+      float total_loss = 0.0f;
+      int correct_predictions = 0;
 
-    // Inner loop: Process images
-    for (int i = 0; i < num_of_samples; ++i) {
-      Tensor input = loader.GetImageAsTensor(training_dataset, i);
-      int label = loader.GetLabel(i);
+      // Inner loop: Process images
+      for (int i = 0; i < num_of_samples; ++i) {
+        Tensor input = loader.GetImageAsTensor(training_dataset, i);
+        int label = loader.GetLabel(i);
 
-      // 1. Forward Pass (Outputs RAW numbers from Dense layer)
-      Tensor logits = net.Forward(input);
+        // 1. Forward Pass (Outputs RAW numbers from Dense layer)
+        Tensor logits = net.Forward(input);
 
-      // 2. Manually pass logits through your Softmax layer to get probabilities
-      Tensor probs = softmax.Forward(logits);
+        // 2. Manually pass logits through your Softmax layer to get
+        // probabilities
+        Tensor probs = softmax.Forward(logits);
 
-      // 3. Cross-Entropy Loss Calculation
-      float epsilon = 1e-7f;
-      float target_prob = probs(0, label, 0, 0);
-      total_loss += -std::log(target_prob + epsilon);
+        // 3. Cross-Entropy Loss Calculation
+        float epsilon = 1e-7f;
+        float target_prob = probs(0, label, 0, 0);
+        total_loss += -std::log(target_prob + epsilon);
 
-      // 4. Track accuracy
-      float max_val = -1e9f;
-      int predicted_class = -1;
-      for (int c = 0; c < 10; ++c) {
-        float p = probs(0, c, 0, 0);
-        if (p > max_val) {
-          max_val = p;
-          predicted_class = c;
+        // 4. Track accuracy
+        float max_val = -1e9f;
+        int predicted_class = -1;
+        for (int c = 0; c < 10; ++c) {
+          float p = probs(0, c, 0, 0);
+          if (p > max_val) {
+            max_val = p;
+            predicted_class = c;
+          }
         }
+        if (predicted_class == label)
+          correct_predictions++;
+
+        // 5. Build the STABLE Gradient Tensor for the Dense layer
+        Tensor grad_out(1, 10, 1, 1);
+        for (int c = 0; c < 10; ++c) {
+          float target = (c == label) ? 1.0f : 0.0f;
+          // The mathematical fusion shortcut: (Probability - Target)
+          grad_out(0, c, 0, 0) = probs(0, c, 0, 0) - target;
+        }
+
+        // 6. Backward Pass (Flows directly into Dense::Backward)
+        net.Backward(grad_out);
+
+        optimizer.Step();
+        optimizer.ZeroGrad();
       }
-      if (predicted_class == label)
-        correct_predictions++;
-
-      // 5. Build the STABLE Gradient Tensor for the Dense layer
-      Tensor grad_out(1, 10, 1, 1);
-      for (int c = 0; c < 10; ++c) {
-        float target = (c == label) ? 1.0f : 0.0f;
-        // The mathematical fusion shortcut: (Probability - Target)
-        grad_out(0, c, 0, 0) = probs(0, c, 0, 0) - target;
-      }
-
-      // 6. Backward Pass (Flows directly into Dense::Backward)
-      net.Backward(grad_out);
-
-      optimizer.Step();
-      optimizer.ZeroGrad();
+      std::cout << "Epoch " << epoch + 1 << "/" << epochs
+                << " | Loss: " << (total_loss / num_of_samples)
+                << " | Accuracy: "
+                << (float)(correct_predictions /
+                           (float)training_dataset.getBatchSize() * 100)
+                << "%" << std::endl;
     }
-    std::cout << "Epoch " << epoch + 1 << "/" << epochs
-              << " | Loss: " << (total_loss / num_of_samples) << " | Accuracy: "
-              << (float)(correct_predictions /
-                         (float)training_dataset.getBatchSize() * 100)
-              << "%" << std::endl;
+  } else {
+    net.LoadWeights(weights_path);
   }
 
   // testing sequence
@@ -127,5 +135,7 @@ int main() {
             << test_loss << " | "
             << "Accuracy:" << (float)test_correct / num_of_samples * 100.0f
             << "%" << std::endl;
+  net.SaveWeights(weights_path);
+  std::cout << "weights saved to:" + weights_path << std::endl;
   return 0;
 }

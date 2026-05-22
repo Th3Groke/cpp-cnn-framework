@@ -3,6 +3,7 @@
 #include <iomanip>
 #include <iostream>
 #include <random>
+#include <stdexcept>
 
 Tensor::Tensor(size_t totalBatchSize, size_t totalChannels, size_t totalRows,
                size_t totalColumns) {
@@ -119,4 +120,29 @@ void Tensor::Print(const std::string &name) const {
     }
   }
   std::cout << std::endl;
+}
+
+void Tensor::Save(std::ostream &out) {
+  size_t dims[4] = {getBatchSize(), getChannels(), getRows(), getColumns()};
+  out.write(reinterpret_cast<char *>(dims), sizeof(dims));
+  size_t total_elements =
+      getBatchSize() * getChannels() * getRows() * getColumns();
+  out.write(reinterpret_cast<const char *>(data.data()),
+            total_elements * sizeof(float));
+}
+
+void Tensor::Load(std::ifstream &in) {
+  size_t dims[4];
+  in.read(reinterpret_cast<char *>(dims), sizeof(dims));
+
+  if (dims[0] != getBatchSize() || dims[1] != getChannels() ||
+      dims[2] != getRows() || dims[3] != getColumns()) {
+    throw std::runtime_error(
+        "Dimensions mismatch, the weights didn't match the layer architecture");
+  }
+
+  size_t total_elements =
+      getBatchSize() * getChannels() * getRows() * getColumns();
+  in.read(reinterpret_cast<char *>(data.data()),
+          total_elements * sizeof(float));
 }

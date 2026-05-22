@@ -1,5 +1,7 @@
 #include "../inc/network.hpp"
+#include <fstream>
 #include <iostream>
+#include <stdexcept>
 #include <vector>
 
 void Network::AddLayer(Layer *layer) { layers.push_back(layer); }
@@ -28,4 +30,30 @@ std::vector<Tensor *> Network::GetParameters() {
     }
   }
   return all_params;
+}
+
+void Network::SaveWeights(const std::string &filepath) {
+  std::ofstream out(filepath, std::ios::binary);
+  if (!out.is_open()) {
+    throw std::runtime_error("Failed to open the file for saving weights: " +
+                             filepath);
+  }
+
+  for (Tensor *param : GetParameters()) {
+    param->Save(out);
+  }
+  out.close();
+}
+
+void Network::LoadWeights(const std::string &filepath) {
+  std::ifstream in(filepath, std::ios::binary);
+  if (!in.is_open()) {
+    throw std::runtime_error(
+        "Failed to open the file while loading the weights: " + filepath);
+  }
+
+  for (Tensor *param : GetParameters()) {
+    param->Load(in);
+  }
+  in.close();
 }
