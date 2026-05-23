@@ -1,4 +1,4 @@
-#include "inc/Cifar10Loader.hpp"
+#include "inc/cifar10loader.hpp"
 #include "inc/conv2d.hpp"
 #include "inc/dense.hpp"
 #include "inc/flatten.hpp"
@@ -10,37 +10,50 @@
 #include "inc/tensor.hpp"
 #include <cmath>
 #include <iostream>
+#include <string>
+#include <vector>
 
-const int epochs = 20;
-const int num_of_samples = 10000;
-const bool TRAIN = false;
+const int NUM_OF_BATCHES = 5;
+const int epochs = 50;
+const int num_of_samples = NUM_OF_BATCHES * 10000;
+const int num_test_samples = 10000;
+const int mini_batch_size = 32;
+const bool TRAIN = true;
 const std::string weights_path = "trained/1.bin";
 int main() {
 
+  std::vector<std::string> batch_paths;
+  for (int i = 1; i <= NUM_OF_BATCHES; i++) {
+    std::string filepath = "data/data_batch_" + std::to_string(i) + ".bin";
+    batch_paths.push_back(filepath);
+  }
   std::cout << "Loading CIFAR-10..." << std::endl;
-  const std::string batch_path = "data/data_batch_1.bin";
   Cifar10Loader loader;
   Tensor training_dataset(num_of_samples, 3, 32, 32);
-  loader.LoadCifar10(training_dataset, batch_path);
+  loader.LoadCifar10(training_dataset, batch_paths);
   std::cout << "Data loaded! Building network..." << std::endl;
 
   // building network
   Network net;
-  Conv2d conv(3, 8, 3);
-  ReLU relu;
-  MaxPooling pool(2, 2);
+  Conv2d conv1(3, 8, 3);
+  ReLU relu1;
+  MaxPooling pool1(2, 2);
+  Conv2d conv2(8, 16, 3);
+  ReLU relu2;
   Flatten flatten;
-  Dense dense(1800, 10);
+  Dense dense(2704, 10);
   Softmax softmax;
 
-  net.AddLayer(&conv);
-  net.AddLayer(&relu);
-  net.AddLayer(&pool);
+  net.AddLayer(&conv1);
+  net.AddLayer(&relu1);
+  net.AddLayer(&pool1);
+  net.AddLayer(&conv2);
+  net.AddLayer(&relu2);
   net.AddLayer(&flatten);
   net.AddLayer(&dense);
 
-  SGD optimizer(net.GetParameters(), 0.0001f);
-
+  SGD optimizer(net.GetParameters(), 0.001f);
+  // running training if true
   if (TRAIN) {
     std::cout << "Starting training..." << std::endl;
     for (int epoch = 0; epoch < epochs; epoch++) {
@@ -52,19 +65,17 @@ int main() {
         Tensor input = loader.GetImageAsTensor(training_dataset, i);
         int label = loader.GetLabel(i);
 
-        // 1. Forward Pass (Outputs RAW numbers from Dense layer)
+        // Forward pass
         Tensor logits = net.Forward(input);
 
-        // 2. Manually pass logits through your Softmax layer to get
-        // probabilities
+        // passing through softmax
         Tensor probs = softmax.Forward(logits);
 
-        // 3. Cross-Entropy Loss Calculation
+        // Cross-Entropy Loss Calculation
         float epsilon = 1e-7f;
         float target_prob = probs(0, label, 0, 0);
         total_loss += -std::log(target_prob + epsilon);
 
-        // 4. Track accuracy
         float max_val = -1e9f;
         int predicted_class = -1;
         for (int c = 0; c < 10; ++c) {
@@ -77,7 +88,6 @@ int main() {
         if (predicted_class == label)
           correct_predictions++;
 
-        // 5. Build the STABLE Gradient Tensor for the Dense layer
         Tensor grad_out(1, 10, 1, 1);
         for (int c = 0; c < 10; ++c) {
           float target = (c == label) ? 1.0f : 0.0f;
@@ -85,11 +95,12 @@ int main() {
           grad_out(0, c, 0, 0) = probs(0, c, 0, 0) - target;
         }
 
-        // 6. Backward Pass (Flows directly into Dense::Backward)
+        // backwards pass
         net.Backward(grad_out);
-
-        optimizer.Step();
-        optimizer.ZeroGrad();
+        if ((i + 1) % mini_batch_size == 0 || (i + 1) % num_of_samples == 0) {
+          optimizer.Step();
+          optimizer.ZeroGrad();
+        }
       }
       std::cout << "Epoch " << epoch + 1 << "/" << epochs
                 << " | Loss: " << (total_loss / num_of_samples)
@@ -104,12 +115,12 @@ int main() {
 
   // testing sequence
   std::string test_path = "data/test_batch.bin";
-  Tensor test_dataset(num_of_samples, 3, 32, 32);
+  Tensor test_dataset(num_test_samples, 3, 32, 32);
   Cifar10Loader test_loader;
   test_loader.LoadCifar10(test_dataset, test_path);
   float test_loss = 0.0f;
   int test_correct = 0;
-  for (size_t n = 0; n < num_of_samples; n++) {
+  for (size_t n = 0; n < num_test_samples; n++) {
     Tensor input = test_loader.GetImageAsTensor(test_dataset, n);
     int label = test_loader.GetLabel(n);
     Tensor logits = net.Forward(input);
@@ -133,10 +144,10 @@ int main() {
   }
   std::cout << "\n=================" << "\nTEST RESULTS"
             << "\n===============\n"
-            << "num_of_samples: " << num_of_samples
+            << "num_of_samples: " << num_test_samples
             << " | number of epochs: " << epochs << '\n'
             << " Loss: " << test_loss << " | "
-            << "Accuracy:" << (float)test_correct / num_of_samples * 100.0f
+            << "Accuracy:" << (float)test_correct / num_test_samples * 100.0f
             << "%" << std::endl;
   net.SaveWeights(weights_path);
   std::cout << "weights saved to:" + weights_path << std::endl;

@@ -1,11 +1,14 @@
 #include "../inc/dense.hpp"
+#include <cmath>
 #include <cstddef>
 
 Dense::Dense(size_t input_size, size_t output_size) {
   in_features = input_size;
   out_features = output_size;
   weights = Tensor(1, 1, out_features, in_features);
-  weights.FillRandomNormal(0.0f, 0.1f);
+  float fan_in = (float)input_size;
+  float std_dev = std::sqrt(2.0f / fan_in);
+  weights.FillRandomNormal(0.0f, std_dev);
   biases = Tensor(1, out_features, 1, 1);
   biases.Fill(0.0f);
 }

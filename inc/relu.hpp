@@ -1,5 +1,4 @@
-#ifndef RELU_HPP
-#define RELU_HPP
+#pragma once
 
 #include "layer.hpp"
 #include "tensor.hpp"
@@ -16,5 +15,3 @@ public:
 
   std::string GetLayerName() const override { return "ReLU"; };
 };
-
-#endif

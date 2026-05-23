@@ -1,6 +1,4 @@
-#ifndef LAYER_H
-#define LAYER_H
-
+#pragma once
 #include "tensor.hpp"
 class Layer {
 public:
@@ -10,5 +8,3 @@ public:
   virtual std::vector<Tensor *> GetParameters() { return {}; }
   virtual std::string GetLayerName() const = 0;
 };
-
-#endif

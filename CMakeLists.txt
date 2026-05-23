@@ -30,7 +30,7 @@ if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     target_link_options(NeuralNet PRIVATE -fopenmp)
 else()
     # Standard fallback for pure Linux/GCC environments
-    find_package(OpenMP)
+    find_package(OpenMP REQUIRED)
     if(OpenMP_CXX_FOUND)
         target_link_libraries(NeuralNet PUBLIC OpenMP::OpenMP_CXX)
     endif()
@@ -62,6 +62,7 @@ add_executable(RunTests
     src/dense.cpp
     src/flatten.cpp
     src/network.cpp
+    src/cifar10loader.cpp
 )
 
 # Tell CMake where to find your headers AND the new Catch2 header

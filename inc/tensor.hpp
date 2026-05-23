@@ -1,5 +1,4 @@
-#ifndef TENSOR_H
-#define TENSOR_H
+#pragma once
 
 #include <cassert>
 #include <cstdlib>
@@ -98,5 +97,3 @@ public:
   void Save(std::ostream &out);
   void Load(std::ifstream &in);
 };
-
-#endif

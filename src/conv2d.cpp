@@ -1,4 +1,5 @@
 #include "../inc/conv2d.hpp"
+#include <cmath>
 #include <cstddef>
 
 Conv2d::Conv2d(int input_channels, int num_filters, int filter_size)
@@ -6,7 +7,10 @@ Conv2d::Conv2d(int input_channels, int num_filters, int filter_size)
       filter_size(filter_size),
       filters(num_filters, input_channels, filter_size, filter_size),
       biases(num_filters, 1, 1, 1) {
-  filters.FillRandomNormal(0.0f, 0.1f);
+  float fan_in = (float)(input_channels * filter_size * filter_size);
+  float std_dev = std::sqrt(2.0f / fan_in);
+  filters.FillRandomNormal(0.0f, std_dev);
+  biases.Fill(0.0f);
 };
 
 Tensor Conv2d::Forward(const Tensor &input) {

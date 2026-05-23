@@ -1,4 +1,4 @@
-#include "../inc/Cifar10Loader.hpp"
+#include "../inc/cifar10loader.hpp"
 #include "../inc/tensor.hpp"
 #include "vendor/catch_amalgamated.hpp"
 #include <cstdio> // For std::remove (deleting the mock file)
