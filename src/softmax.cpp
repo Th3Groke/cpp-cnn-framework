@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <cmath>
 
-Tensor Softmax::Forward(const Tensor &input) {
+Tensor Softmax::Forward(const Tensor &input, bool is_training) {
   Tensor output(input.getBatchSize(), input.getChannels(), input.getRows(),
                 input.getColumns());
 

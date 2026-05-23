@@ -1,6 +1,6 @@
 #include "../inc/flatten.hpp"
 
-Tensor Flatten::Forward(const Tensor &input) {
+Tensor Flatten::Forward(const Tensor &input, bool is_training) {
   batch_cache = input.getBatchSize();
   channels_cache = input.getChannels();
   rows_cache = input.getRows();

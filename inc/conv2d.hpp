@@ -14,7 +14,7 @@ private:
 
 public:
   Conv2d(int input_channels, int num_filters, int filter_size);
-  Tensor Forward(const Tensor &input) override;
+  Tensor Forward(const Tensor &input, bool is_training = false) override;
   Tensor Backward(const Tensor &grad_out) override;
   std::string GetLayerName() const override { return "Conv2D"; };
   Tensor &GetFilters() { return filters; };

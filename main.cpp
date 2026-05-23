@@ -1,6 +1,7 @@
 #include "inc/cifar10loader.hpp"
 #include "inc/conv2d.hpp"
 #include "inc/dense.hpp"
+#include "inc/dropout.hpp"
 #include "inc/flatten.hpp"
 #include "inc/maxpooling.hpp"
 #include "inc/network.hpp"
@@ -43,6 +44,7 @@ int main() {
   Flatten flatten;
   Dense dense(2704, 10);
   Softmax softmax;
+  Dropout dropout1;
 
   net.AddLayer(&conv1);
   net.AddLayer(&relu1);
@@ -50,6 +52,7 @@ int main() {
   net.AddLayer(&conv2);
   net.AddLayer(&relu2);
   net.AddLayer(&flatten);
+  net.AddLayer(&dropout1);
   net.AddLayer(&dense);
 
   SGD optimizer(net.GetParameters(), 0.001f);
@@ -66,7 +69,7 @@ int main() {
         int label = loader.GetLabel(i);
 
         // Forward pass
-        Tensor logits = net.Forward(input);
+        Tensor logits = net.Forward(input, TRAIN);
 
         // passing through softmax
         Tensor probs = softmax.Forward(logits);

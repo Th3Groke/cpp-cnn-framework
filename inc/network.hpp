@@ -12,7 +12,7 @@ public:
   ~Network() = default;
   void AddLayer(Layer *layer);
 
-  Tensor Forward(Tensor input);
+  Tensor Forward(Tensor input, bool is_training = false);
 
   Tensor Backward(Tensor grad_out);
 

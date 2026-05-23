@@ -13,7 +13,7 @@ Conv2d::Conv2d(int input_channels, int num_filters, int filter_size)
   biases.Fill(0.0f);
 };
 
-Tensor Conv2d::Forward(const Tensor &input) {
+Tensor Conv2d::Forward(const Tensor &input, bool is_training) {
   input_cache = input;
   Tensor output(input.getBatchSize(), num_filters,
                 input.getRows() - filter_size + 1,

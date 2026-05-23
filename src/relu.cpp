@@ -1,6 +1,6 @@
 #include "../inc/relu.hpp"
 
-Tensor ReLU::Forward(const Tensor &input) {
+Tensor ReLU::Forward(const Tensor &input, bool is_training) {
   input_cache = input;
   Tensor output = input;
   for (size_t n = 0; n < output.getBatchSize(); n++) {

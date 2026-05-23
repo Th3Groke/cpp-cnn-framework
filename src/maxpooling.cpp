@@ -1,10 +1,9 @@
 #include "../inc/maxpooling.hpp"
-#include <filesystem>
 
 MaxPooling::MaxPooling(int pool_size, int stride)
     : pool_size(pool_size), stride(stride) {};
 
-Tensor MaxPooling::Forward(const Tensor &input) {
+Tensor MaxPooling::Forward(const Tensor &input, bool is_training) {
   size_t new_r = input.getRows() / stride;
   size_t new_c = input.getColumns() / stride;
   Tensor grad_out(input.getBatchSize(), input.getChannels(), new_r, new_c);

@@ -11,9 +11,9 @@ private:
 public:
   MaxPooling(int pool_size, int stride);
 
-  Tensor Forward(const Tensor &input);
-  Tensor Backward(const Tensor &grad_out);
+  Tensor Forward(const Tensor &input, bool is_training = false) override;
+  Tensor Backward(const Tensor &grad_out) override;
 
-  std::vector<Tensor *> GetParameters() { return {}; };
-  std::string GetLayerName() const { return "MaxPooling"; };
+  std::vector<Tensor *> GetParameters() override { return {}; };
+  std::string GetLayerName() const override { return "MaxPooling"; };
 };

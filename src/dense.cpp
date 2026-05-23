@@ -14,7 +14,7 @@ Dense::Dense(size_t input_size, size_t output_size) {
 }
 
 std::vector<Tensor *> Dense::GetParameters() { return {&weights, &biases}; };
-Tensor Dense::Forward(const Tensor &input) {
+Tensor Dense::Forward(const Tensor &input, bool is_training) {
   input_cache = input;
   size_t batch_size = input.getBatchSize();
   Tensor output(batch_size, out_features, 1, 1);

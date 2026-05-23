@@ -6,7 +6,7 @@
 
 void Network::AddLayer(Layer *layer) { layers.push_back(layer); }
 
-Tensor Network::Forward(Tensor input) {
+Tensor Network::Forward(Tensor input, bool is_training) {
   Tensor current = input;
   for (auto lr : layers) {
     current = lr->Forward(current);

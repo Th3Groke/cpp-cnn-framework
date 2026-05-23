@@ -11,7 +11,7 @@ private:
   size_t columns_cache;
 
 public:
-  Tensor Forward(const Tensor &input) override;
+Tensor Forward(const Tensor &input, bool is_training=false) override;
   Tensor Backward(const Tensor &grad_out) override;
 
   // std::vector<Tensor *> GetParameters() override;
