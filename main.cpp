@@ -2,6 +2,7 @@
 #include "inc/conv2d.hpp"
 #include "inc/dense.hpp"
 #include "inc/flatten.hpp"
+#include "inc/maxpooling.hpp"
 #include "inc/network.hpp"
 #include "inc/relu.hpp"
 #include "inc/sgd.hpp"
@@ -27,12 +28,14 @@ int main() {
   Network net;
   Conv2d conv(3, 8, 3);
   ReLU relu;
+  MaxPooling pool(2, 2);
   Flatten flatten;
-  Dense dense(7200, 10);
+  Dense dense(1800, 10);
   Softmax softmax;
 
   net.AddLayer(&conv);
   net.AddLayer(&relu);
+  net.AddLayer(&pool);
   net.AddLayer(&flatten);
   net.AddLayer(&dense);
 
@@ -131,8 +134,8 @@ int main() {
   std::cout << "\n=================" << "\nTEST RESULTS"
             << "\n===============\n"
             << "num_of_samples: " << num_of_samples
-            << " | number of epochs: " << epochs << " Loss: " << '\n'
-            << test_loss << " | "
+            << " | number of epochs: " << epochs << '\n'
+            << " Loss: " << test_loss << " | "
             << "Accuracy:" << (float)test_correct / num_of_samples * 100.0f
             << "%" << std::endl;
   net.SaveWeights(weights_path);
