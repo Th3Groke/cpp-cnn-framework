@@ -9,6 +9,8 @@ class Cifar10Loader {
 private:
   std::string path;
   std::vector<int> labels;
+  void LoadSingleFileAsync(Tensor &tensor, const std::string &filepath,
+                           int start_index);
 
   float NormalizePixelValue(uint8_t b) {
     return static_cast<float>(b) / 255.0f;
@@ -26,5 +28,5 @@ public:
   Tensor GetBatch(const Tensor &dataset, int index, int batch_size);
 
   void LoadCifar10(Tensor &tensor, const std::string &filepath);
-  void LoadCifar10(Tensor &tensor, std::vector<std::string> &filepath);
+  void LoadCifar10(Tensor &tensor, const std::vector<std::string> &filepath);
 };

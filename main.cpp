@@ -20,8 +20,8 @@ const int epochs = 50;
 const int num_of_samples = NUM_OF_BATCHES * 10000;
 const int num_test_samples = 10000;
 const int mini_batch_size = 32;
-const bool TRAIN = true;
-const std::string weights_path = "trained/1.bin";
+const bool TRAIN = false;
+const std::string weights_path = "1.bin";
 int main() {
 
   std::vector<std::string> batch_paths;
@@ -91,7 +91,8 @@ int main() {
 
           for (int c = 0; c < 10; ++c) {
             float target = (c == label) ? 1.0f : 0.0f;
-            grad_out(b, c, 0, 0) = (probs(b, c, 0, 0) - target) / current_batch_size;
+            grad_out(b, c, 0, 0) =
+                (probs(b, c, 0, 0) - target) / current_batch_size;
           }
         }
 
@@ -121,7 +122,8 @@ int main() {
   int test_correct = 0;
 
   for (size_t n = 0; n < num_test_samples; n += mini_batch_size) {
-    int current_batch_size = std::min((size_t)mini_batch_size, num_test_samples - n);
+    int current_batch_size =
+        std::min((size_t)mini_batch_size, num_test_samples - n);
     Tensor input = test_loader.GetBatch(test_dataset, n, current_batch_size);
     std::vector<int> labels = test_loader.GetLabels(n, current_batch_size);
 

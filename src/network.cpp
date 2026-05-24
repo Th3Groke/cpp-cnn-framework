@@ -1,7 +1,9 @@
 #include "../inc/network.hpp"
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 void Network::AddLayer(std::unique_ptr<Layer> layer) {
@@ -34,24 +36,49 @@ std::vector<Tensor *> Network::GetParameters() {
   return all_params;
 }
 
-void Network::SaveWeights(const std::string &filepath) {
-  std::ofstream out(filepath, std::ios::binary);
+void Network::SaveWeights(const std::string &filename,
+                          const std::string &directory) {
+  std::filesystem::path dir_path = directory;
+
+  if (!std::filesystem::exists(dir_path)) {
+    std::cout << "Directory " << dir_path << " not found. creating now..."
+              << std::endl;
+    if (std::filesystem::create_directories(dir_path)) {
+      std::cout << "Created directory!" << std::endl;
+    } else {
+      std::cerr << "Could not create the directory" << std::endl;
+      return;
+    }
+  }
+  std::filesystem::path full_path = dir_path / filename;
+  std::ofstream out(full_path, std::ios::binary);
+
   if (!out.is_open()) {
     throw std::runtime_error("Failed to open the file for saving weights: " +
-                             filepath);
+                             filename);
   }
 
   for (Tensor *param : GetParameters()) {
     param->Save(out);
   }
   out.close();
+  std::cout << "weights saved to " << full_path << std::endl;
 }
 
-void Network::LoadWeights(const std::string &filepath) {
-  std::ifstream in(filepath, std::ios::binary);
+void Network::LoadWeights(const std::string &filename,
+                          const std::string &directory) {
+  std::filesystem::path dir_path = directory;
+  if (!std::filesystem::exists(dir_path)) {
+    throw std::runtime_error("Could not find the directory " +
+                             dir_path.string());
+  }
+
+  std::filesystem::path full_path = dir_path / filename;
+  std::ifstream in(full_path, std::ios::binary);
   if (!in.is_open()) {
     throw std::runtime_error(
-        "Failed to open the file while loading the weights: " + filepath);
+        "Failed to open the file while loading the weights: " +
+        full_path.string());
   }
 
   for (Tensor *param : GetParameters()) {
