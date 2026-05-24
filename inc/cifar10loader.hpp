@@ -21,7 +21,9 @@ public:
   Cifar10Loader() = default;
 
   int GetLabel(int index) { return labels[index]; }
+  std::vector<int> GetLabels(int index, int batch_size);
   Tensor GetImageAsTensor(const Tensor &dataset, int index);
+  Tensor GetBatch(const Tensor &dataset, int index, int batch_size);
 
   void LoadCifar10(Tensor &tensor, const std::string &filepath);
   void LoadCifar10(Tensor &tensor, std::vector<std::string> &filepath);

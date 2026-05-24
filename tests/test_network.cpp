@@ -10,16 +10,9 @@ TEST_CASE("Full Network Training Loop", "[network][integration]") {
   // 1. Build the Architecture
   Network net;
 
-  // Input is 1 channel. We want 2 output channels, using a 2x2 filter.
-  // A 3x3 input image will become a 2x2 spatial output.
-  Conv2d conv(1, 2, 2);
-  Flatten flatten;
-  // Conv output is (Batch, 2 channels, 2 rows, 2 cols) = 8 total features
-  Dense dense(8, 2);
-
-  net.AddLayer(&conv);
-  net.AddLayer(&flatten);
-  net.AddLayer(&dense);
+  net.AddLayer(std::make_unique<Conv2d>(1, 2, 2));
+  net.AddLayer(std::make_unique<Flatten>());
+  net.AddLayer(std::make_unique<Dense>(8, 2));
 
   // 2. Setup the Optimizer
   SGD optimizer(net.GetParameters(), 0.05f); // Learning rate 0.05

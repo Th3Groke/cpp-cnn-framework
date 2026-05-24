@@ -19,6 +19,7 @@ Tensor Conv2d::Forward(const Tensor &input, bool is_training) {
                 input.getRows() - filter_size + 1,
                 input.getColumns() - filter_size + 1);
 
+#pragma omp parallel for collapse(2)
   for (size_t n = 0; n < input.getBatchSize(); n++) {
     for (int f = 0; f < num_filters; f++) {
       for (size_t out_h = 0; out_h < output.getRows(); out_h++) {
@@ -46,6 +47,7 @@ Tensor Conv2d::Backward(const Tensor &grad_out) {
   // Bias Gradients and update
   for (int f = 0; f < num_filters; f++) {
     float d_bias = 0.0f;
+#pragma omp parallel for reduction(+ : d_bias) collapse(3)
     for (size_t n = 0; n < grad_out.getBatchSize(); n++) {
       for (size_t h = 0; h < grad_out.getRows(); h++) {
         for (size_t w = 0; w < grad_out.getColumns(); w++) {
@@ -57,6 +59,7 @@ Tensor Conv2d::Backward(const Tensor &grad_out) {
   }
 
   // filter Gradients and update
+#pragma omp parallel for collapse(2)
   for (int f = 0; f < num_filters; f++) {
     for (size_t c = 0; c < input_cache.getChannels(); c++) {
       for (int f_h = 0; f_h < filter_size; f_h++) {
@@ -78,21 +81,26 @@ Tensor Conv2d::Backward(const Tensor &grad_out) {
   }
 
   // input gradients
+#pragma omp parallel for collapse(2)
   for (size_t n = 0; n < input_cache.getBatchSize(); n++) {
-    for (int f = 0; f < num_filters; f++) {
-      for (size_t out_h = 0; out_h < grad_out.getRows(); out_h++) {
-        for (size_t out_w = 0; out_w < grad_out.getColumns(); out_w++) {
-
-          float d_out = grad_out(n, f, out_h, out_w);
-
-          for (size_t c = 0; c < input_cache.getChannels(); c++) {
+    for (size_t c = 0; c < input_cache.getChannels(); c++) {
+      for (size_t i_h = 0; i_h < input_cache.getRows(); i_h++) {
+        for (size_t i_w = 0; i_w < input_cache.getColumns(); i_w++) {
+          float d_input = 0.0f;
+          for (int f = 0; f < num_filters; f++) {
             for (int f_h = 0; f_h < filter_size; f_h++) {
               for (int f_w = 0; f_w < filter_size; f_w++) {
-                grad_input(n, c, out_h + f_h, out_w + f_w) +=
-                    d_out * filters(f, c, f_h, f_w);
+                int out_h = (int)i_h - f_h;
+                int out_w = (int)i_w - f_w;
+                if (out_h >= 0 && out_h < (int)grad_out.getRows() &&
+                    out_w >= 0 && out_w < (int)grad_out.getColumns()) {
+                  d_input += grad_out(n, f, out_h, out_w) *
+                             filters(f, c, f_h, f_w);
+                }
               }
             }
           }
+          grad_input(n, c, i_h, i_w) = d_input;
         }
       }
     }

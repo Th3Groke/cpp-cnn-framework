@@ -4,12 +4,14 @@
 #include <stdexcept>
 #include <vector>
 
-void Network::AddLayer(Layer *layer) { layers.push_back(layer); }
+void Network::AddLayer(std::unique_ptr<Layer> layer) {
+  layers.push_back(std::move(layer));
+}
 
-Tensor Network::Forward(Tensor input, bool is_training) {
+Tensor Network::Forward(const Tensor &input, bool is_training) {
   Tensor current = input;
-  for (auto lr : layers) {
-    current = lr->Forward(current);
+  for (const auto &lr : layers) {
+    current = lr->Forward(current, is_training);
   }
   return current;
 }
@@ -24,7 +26,7 @@ Tensor Network::Backward(Tensor grad_out) {
 
 std::vector<Tensor *> Network::GetParameters() {
   std::vector<Tensor *> all_params;
-  for (auto lr : layers) {
+  for (const auto &lr : layers) {
     for (auto param : lr->GetParameters()) {
       all_params.push_back(param);
     }

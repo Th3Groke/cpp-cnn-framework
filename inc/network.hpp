@@ -2,17 +2,18 @@
 
 #include "layer.hpp"
 #include "tensor.hpp"
+#include <memory>
 
 class Network {
 private:
-  std::vector<Layer *> layers;
+  std::vector<std::unique_ptr<Layer>> layers;
 
 public:
   Network() {};
   ~Network() = default;
-  void AddLayer(Layer *layer);
+  void AddLayer(std::unique_ptr<Layer> layer);
 
-  Tensor Forward(Tensor input, bool is_training = false);
+  Tensor Forward(const Tensor &input, bool is_training = false);
 
   Tensor Backward(Tensor grad_out);
 

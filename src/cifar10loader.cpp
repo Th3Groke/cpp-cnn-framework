@@ -11,6 +11,29 @@ const int NUM_COLUMNS = 32;
 const int IMAGES_PER_FILE = 10000;
 const int NUM_IMAGE_BYTES = NUM_COLUMNS * NUM_ROWS * NUM_CHANNELS;
 
+Tensor Cifar10Loader::GetBatch(const Tensor &dataset, int index, int batch_size) {
+  Tensor batch(batch_size, 3, 32, 32);
+#pragma omp parallel for collapse(4)
+  for (int i = 0; i < batch_size; i++) {
+    for (int c = 0; c < 3; c++) {
+      for (int h = 0; h < 32; h++) {
+        for (int w = 0; w < 32; w++) {
+          batch(i, c, h, w) = dataset(index + i, c, h, w);
+        }
+      }
+    }
+  }
+  return batch;
+}
+
+std::vector<int> Cifar10Loader::GetLabels(int index, int batch_size) {
+  std::vector<int> batch_labels;
+  for (int i = 0; i < batch_size; i++) {
+    batch_labels.push_back(labels[index + i]);
+  }
+  return batch_labels;
+}
+
 Tensor Cifar10Loader::GetImageAsTensor(const Tensor &dataset, int index) {
   Tensor single_image(1, 3, 32, 32);
   for (int c = 0; c < 3; c++) {

@@ -11,6 +11,7 @@
 #include "inc/tensor.hpp"
 #include <cmath>
 #include <iostream>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -36,24 +37,16 @@ int main() {
 
   // building network
   Network net;
-  Conv2d conv1(3, 8, 3);
-  ReLU relu1;
-  MaxPooling pool1(2, 2);
-  Conv2d conv2(8, 16, 3);
-  ReLU relu2;
-  Flatten flatten;
-  Dense dense(2704, 10);
-  Softmax softmax;
-  Dropout dropout1;
+  net.AddLayer(std::make_unique<Conv2d>(3, 8, 3));
+  net.AddLayer(std::make_unique<ReLU>());
+  net.AddLayer(std::make_unique<MaxPooling>(2, 2));
+  net.AddLayer(std::make_unique<Conv2d>(8, 16, 3));
+  net.AddLayer(std::make_unique<ReLU>());
+  net.AddLayer(std::make_unique<Flatten>());
+  net.AddLayer(std::make_unique<Dropout>());
+  net.AddLayer(std::make_unique<Dense>(2704, 10));
 
-  net.AddLayer(&conv1);
-  net.AddLayer(&relu1);
-  net.AddLayer(&pool1);
-  net.AddLayer(&conv2);
-  net.AddLayer(&relu2);
-  net.AddLayer(&flatten);
-  net.AddLayer(&dropout1);
-  net.AddLayer(&dense);
+  Softmax softmax;
 
   SGD optimizer(net.GetParameters(), 0.0005f);
   // running training if true
@@ -63,10 +56,11 @@ int main() {
       float total_loss = 0.0f;
       int correct_predictions = 0;
 
-      // Inner loop: Process images
-      for (int i = 0; i < num_of_samples; ++i) {
-        Tensor input = loader.GetImageAsTensor(training_dataset, i);
-        int label = loader.GetLabel(i);
+      // Inner loop: Process mini-batches
+      for (int i = 0; i < num_of_samples; i += mini_batch_size) {
+        int current_batch_size = std::min(mini_batch_size, num_of_samples - i);
+        Tensor input = loader.GetBatch(training_dataset, i, current_batch_size);
+        std::vector<int> labels = loader.GetLabels(i, current_batch_size);
 
         // Forward pass
         Tensor logits = net.Forward(input, TRAIN);
@@ -74,43 +68,43 @@ int main() {
         // passing through softmax
         Tensor probs = softmax.Forward(logits);
 
-        // Cross-Entropy Loss Calculation
+        // Cross-Entropy Loss Calculation and Gradient Output
+        Tensor grad_out(current_batch_size, 10, 1, 1);
         float epsilon = 1e-7f;
-        float target_prob = probs(0, label, 0, 0);
-        total_loss += -std::log(target_prob + epsilon);
 
-        float max_val = -1e9f;
-        int predicted_class = -1;
-        for (int c = 0; c < 10; ++c) {
-          float p = probs(0, c, 0, 0);
-          if (p > max_val) {
-            max_val = p;
-            predicted_class = c;
+        for (int b = 0; b < current_batch_size; b++) {
+          int label = labels[b];
+          float target_prob = probs(b, label, 0, 0);
+          total_loss += -std::log(target_prob + epsilon);
+
+          float max_val = -1e9f;
+          int predicted_class = -1;
+          for (int c = 0; c < 10; ++c) {
+            float p = probs(b, c, 0, 0);
+            if (p > max_val) {
+              max_val = p;
+              predicted_class = c;
+            }
           }
-        }
-        if (predicted_class == label)
-          correct_predictions++;
+          if (predicted_class == label)
+            correct_predictions++;
 
-        Tensor grad_out(1, 10, 1, 1);
-        for (int c = 0; c < 10; ++c) {
-          float target = (c == label) ? 1.0f : 0.0f;
-          // The mathematical fusion shortcut: (Probability - Target)
-          grad_out(0, c, 0, 0) = probs(0, c, 0, 0) - target;
+          for (int c = 0; c < 10; ++c) {
+            float target = (c == label) ? 1.0f : 0.0f;
+            grad_out(b, c, 0, 0) = (probs(b, c, 0, 0) - target) / current_batch_size;
+          }
         }
 
         // backwards pass
         net.Backward(grad_out);
-        if ((i + 1) % mini_batch_size == 0 || (i + 1) % num_of_samples == 0) {
-          optimizer.Step();
-          optimizer.ZeroGrad();
-        }
+        optimizer.Step();
+        optimizer.ZeroGrad();
       }
       std::cout << "Epoch " << epoch + 1 << "/" << epochs
                 << " | Loss: " << (total_loss / num_of_samples)
                 << " | Accuracy: "
-                << (float)(correct_predictions /
-                           (float)training_dataset.getBatchSize() * 100)
-                << "%" << std::endl;
+                << (float)correct_predictions / num_of_samples * 100.0f << "%"
+                << std::endl;
       optimizer.DecayLearningRate(0.95f);
     }
   } else {
@@ -118,42 +112,51 @@ int main() {
   }
 
   // testing sequence
+  std::cout << "\nStarting testing..." << std::endl;
   std::string test_path = "data/test_batch.bin";
   Tensor test_dataset(num_test_samples, 3, 32, 32);
   Cifar10Loader test_loader;
   test_loader.LoadCifar10(test_dataset, test_path);
   float test_loss = 0.0f;
   int test_correct = 0;
-  for (size_t n = 0; n < num_test_samples; n++) {
-    Tensor input = test_loader.GetImageAsTensor(test_dataset, n);
-    int label = test_loader.GetLabel(n);
+
+  for (size_t n = 0; n < num_test_samples; n += mini_batch_size) {
+    int current_batch_size = std::min((size_t)mini_batch_size, num_test_samples - n);
+    Tensor input = test_loader.GetBatch(test_dataset, n, current_batch_size);
+    std::vector<int> labels = test_loader.GetLabels(n, current_batch_size);
+
     Tensor logits = net.Forward(input);
     Tensor probs = softmax.Forward(logits);
 
-    float epsylon = 1e-7f;
-    float target_prob = probs(0, label, 0, 0);
-    test_loss += -std::log(target_prob + epsylon);
-    float max_prob = -1e9f;
-    int predicted_class = -1;
-    for (int c = 0; c < 10; c++) {
-      float p = probs(0, c, 0, 0);
-      if (p > max_prob) {
-        max_prob = p;
-        predicted_class = c;
+    float epsilon = 1e-7f;
+    for (int b = 0; b < current_batch_size; b++) {
+      int label = labels[b];
+      float target_prob = probs(b, label, 0, 0);
+      test_loss += -std::log(target_prob + epsilon);
+
+      float max_prob = -1e9f;
+      int predicted_class = -1;
+      for (int c = 0; c < 10; c++) {
+        float p = probs(b, c, 0, 0);
+        if (p > max_prob) {
+          max_prob = p;
+          predicted_class = c;
+        }
+      }
+      if (predicted_class == label) {
+        test_correct++;
       }
     }
-    if (predicted_class == label) {
-      test_correct++;
-    }
   }
+
   std::cout << "\n=================" << "\nTEST RESULTS"
             << "\n===============\n"
             << "num_of_samples: " << num_test_samples
             << " | number of epochs: " << epochs << '\n'
-            << " Loss: " << test_loss << " | "
-            << "Accuracy:" << (float)test_correct / num_test_samples * 100.0f
+            << " Average Loss: " << (test_loss / num_test_samples) << " | "
+            << "Accuracy: " << (float)test_correct / num_test_samples * 100.0f
             << "%" << std::endl;
   net.SaveWeights(weights_path);
-  std::cout << "weights saved to:" + weights_path << std::endl;
+  std::cout << "Weights saved to: " + weights_path << std::endl;
   return 0;
 }
