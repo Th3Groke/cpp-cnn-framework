@@ -5,13 +5,15 @@
 
 class SGD {
 private:
-  std::vector<Tensor *> parameters;
-  float learning_rate;
+  std::vector<Tensor *> parameters_;
+  std::vector<Tensor> velocities_;
+  float learning_rate_;
+  float momentum_;
 
 public:
-  SGD(const std::vector<Tensor *> params, float lr);
+  SGD(const std::vector<Tensor *> params, float lr, float momentum = 0.9f);
 
   void Step();
-
+  void DecayLearningRate(float decay_factor);
   void ZeroGrad();
 };

@@ -55,7 +55,7 @@ int main() {
   net.AddLayer(&dropout1);
   net.AddLayer(&dense);
 
-  SGD optimizer(net.GetParameters(), 0.001f);
+  SGD optimizer(net.GetParameters(), 0.0005f);
   // running training if true
   if (TRAIN) {
     std::cout << "Starting training..." << std::endl;
@@ -111,6 +111,7 @@ int main() {
                 << (float)(correct_predictions /
                            (float)training_dataset.getBatchSize() * 100)
                 << "%" << std::endl;
+      optimizer.DecayLearningRate(0.95f);
     }
   } else {
     net.LoadWeights(weights_path);
