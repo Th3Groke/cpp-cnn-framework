@@ -5,17 +5,20 @@
 #include <sys/types.h>
 #include <vector>
 
-class Cifar10Loader {
+class Cifar10Loader
+{
 private:
   std::string path;
   std::vector<int> labels;
   void LoadSingleFileAsync(Tensor &tensor, const std::string &filepath,
                            int start_index);
 
-  float NormalizePixelValue(uint8_t b) {
+  float NormalizePixelValue(uint8_t b)
+  {
     return static_cast<float>(b) / 255.0f;
   }
-  uint GetBufferIndex(int channel, int row, int column) {
+  unsigned int GetBufferIndex(int channel, int row, int column)
+  {
     return (channel * 1024) + (row * 32) + column;
   }
 
