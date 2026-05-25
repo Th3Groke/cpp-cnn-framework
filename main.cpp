@@ -20,14 +20,12 @@ const int epochs = 50;
 const int num_of_samples = NUM_OF_BATCHES * 10000;
 const int num_test_samples = 10000;
 const int mini_batch_size = 32;
-const bool TRAIN = true;
+const bool TRAIN = false;
 const std::string weights_path = "1.bin";
-int main()
-{
+int main() {
 
   std::vector<std::string> batch_paths;
-  for (int i = 1; i <= NUM_OF_BATCHES; i++)
-  {
+  for (int i = 1; i <= NUM_OF_BATCHES; i++) {
     std::string filepath = "data/data_batch_" + std::to_string(i) + ".bin";
     batch_paths.push_back(filepath);
   }
@@ -52,17 +50,14 @@ int main()
 
   SGD optimizer(net.GetParameters(), 0.0005f);
   // running training if true
-  if (TRAIN)
-  {
+  if (TRAIN) {
     std::cout << "Starting training..." << std::endl;
-    for (int epoch = 0; epoch < epochs; epoch++)
-    {
+    for (int epoch = 0; epoch < epochs; epoch++) {
       float total_loss = 0.0f;
       int correct_predictions = 0;
 
       // Inner loop: Process mini-batches
-      for (int i = 0; i < num_of_samples; i += mini_batch_size)
-      {
+      for (int i = 0; i < num_of_samples; i += mini_batch_size) {
         int current_batch_size = std::min(mini_batch_size, num_of_samples - i);
         Tensor input = loader.GetBatch(training_dataset, i, current_batch_size);
         std::vector<int> labels = loader.GetLabels(i, current_batch_size);
@@ -77,19 +72,16 @@ int main()
         Tensor grad_out(current_batch_size, 10, 1, 1);
         float epsilon = 1e-7f;
 
-        for (int b = 0; b < current_batch_size; b++)
-        {
+        for (int b = 0; b < current_batch_size; b++) {
           int label = labels[b];
           float target_prob = probs(b, label, 0, 0);
           total_loss += -std::log(target_prob + epsilon);
 
           float max_val = -1e9f;
           int predicted_class = -1;
-          for (int c = 0; c < 10; ++c)
-          {
+          for (int c = 0; c < 10; ++c) {
             float p = probs(b, c, 0, 0);
-            if (p > max_val)
-            {
+            if (p > max_val) {
               max_val = p;
               predicted_class = c;
             }
@@ -97,8 +89,7 @@ int main()
           if (predicted_class == label)
             correct_predictions++;
 
-          for (int c = 0; c < 10; ++c)
-          {
+          for (int c = 0; c < 10; ++c) {
             float target = (c == label) ? 1.0f : 0.0f;
             grad_out(b, c, 0, 0) =
                 (probs(b, c, 0, 0) - target) / current_batch_size;
@@ -117,9 +108,7 @@ int main()
                 << std::endl;
       optimizer.DecayLearningRate(0.95f);
     }
-  }
-  else
-  {
+  } else {
     net.LoadWeights(weights_path);
   }
 
@@ -132,8 +121,7 @@ int main()
   float test_loss = 0.0f;
   int test_correct = 0;
 
-  for (size_t n = 0; n < num_test_samples; n += mini_batch_size)
-  {
+  for (size_t n = 0; n < num_test_samples; n += mini_batch_size) {
     int current_batch_size =
         std::min((size_t)mini_batch_size, num_test_samples - n);
     Tensor input = test_loader.GetBatch(test_dataset, n, current_batch_size);
@@ -143,25 +131,21 @@ int main()
     Tensor probs = softmax.Forward(logits);
 
     float epsilon = 1e-7f;
-    for (int b = 0; b < current_batch_size; b++)
-    {
+    for (int b = 0; b < current_batch_size; b++) {
       int label = labels[b];
       float target_prob = probs(b, label, 0, 0);
       test_loss += -std::log(target_prob + epsilon);
 
       float max_prob = -1e9f;
       int predicted_class = -1;
-      for (int c = 0; c < 10; c++).
-      {
+      for (int c = 0; c < 10; c++) {
         float p = probs(b, c, 0, 0);
-        if (p > max_prob)
-        {
+        if (p > max_prob) {
           max_prob = p;
           predicted_class = c;
         }
       }
-      if (predicted_class == label)
-      {
+      if (predicted_class == label) {
         test_correct++;
       }
     }
