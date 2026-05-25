@@ -13,10 +13,11 @@
 \usepackage{amsthm}
 \usepackage{graphicx}
 \usepackage{tikz}
-\usetikzlibrary{positioning, arrows.meta}
+\usetikzlibrary{positioning, arrows.meta, shapes.multipart}
 \usepackage{listings}
 \usepackage{xcolor}
 \usepackage{hyperref}
+\usepackage{float}
 
 % Color definitions for code blocks
 \definecolor{codegreen}{rgb}{0,0.6,0}
@@ -59,6 +60,7 @@
 
 \title{\textbf{Implementation of a Convolutional Neural Network for CIFAR-10 Classification in C++}}
 \author{Adam Dyrda}
+\date{May 2026}
 
 % ==========================================
 % BEGIN DOCUMENT
@@ -67,11 +69,10 @@
 \begin{document}
 
 \maketitle
-
 \begin{abstract}
 This report details the implementation of a Convolutional Neural Network (CNN) from scratch using C++. The project focuses on the classification of the CIFAR-10 dataset, which consists of 60,000 32x32 color images in 10 different classes. The implementation includes a custom 4D Tensor library, various neural network layers (Convolutional, Pooling, Dense, etc.), and a Stochastic Gradient Descent (SGD) optimizer. The results demonstrate the capability of the developed framework to learn and classify images with reasonable accuracy.
 \end{abstract}
-
+\pagebreak
 \tableofcontents
 \newpage
 
@@ -92,60 +93,10 @@ The system is designed with modularity and extensibility in mind. The core compo
 \subsection{Class Diagram}
 The relationships between the core classes are illustrated in the UML diagram below. The \texttt{Network} class manages a collection of abstract \texttt{Layer} pointers, which allows for dynamic composition of different layer types. All layers process and return \texttt{Tensor} objects.
 
-\begin{center}
-\begin{tikzpicture}[
-  class/.style={
-    rectangle,
-    draw,
-    align=center,
-    top color=white,
-    bottom color=blue!10,
-    thick,
-    minimum width=3cm,
-    minimum height=1.5cm
-  },
-  arrow/.style={
-    -{Stealth[length=3mm, width=2mm]},
-    thick
-  },
-  inherit/.style={
-    -{Triangle[open, length=3mm, width=3mm]},
-    thick
-  },
-  compose/.style={
-    {Diamond[fill=black, length=3mm, width=2mm]}-,
-    thick
-  },
-  depend/.style={
-    dashed,
-    -{Stealth[length=3mm, width=2mm]},
-    thick
-  }
-]
-
-  % Nodes
-  \node[class] (Network) {\textbf{Network} \\ \textit{Manages Layers}};
-  \node[class, below=1.5cm of Network] (Layer) {\textbf{Layer} \\ \textit{Abstract Base}};
-  \node[class, left=2.5cm of Layer] (Tensor) {\textbf{Tensor} \\ \textit{4D Array}};
-  
-  % Derived layers
-  \node[class, below left=1.5cm and 1cm of Layer] (Conv2d) {\textbf{Conv2d}};
-  \node[class, below=1.5cm of Layer] (Dense) {\textbf{Dense}};
-  \node[class, below right=1.5cm and 1cm of Layer] (ReLU) {\textbf{ReLU}};
-  \node[class, right=0.5cm of ReLU] (Others) {\textbf{...}};
-
-  % Relationships
-  \draw[compose] (Network) -- node[left, align=right] {owns} (Layer);
-  \draw[depend] (Layer) -- node[above] {uses} (Tensor);
-  
-  % Inheritance
-  \draw[inherit] (Conv2d) |- ([yshift=-0.7cm]Layer.south) -- (Layer.south);
-  \draw[inherit] (Dense) -- (Layer);
-  \draw[inherit] (ReLU) |- ([yshift=-0.7cm]Layer.south) -- (Layer.south);
-  \draw[inherit] (Others) |- ([yshift=-0.7cm]Layer.south) -- (Layer.south);
-
-\end{tikzpicture}
-\end{center}
+\begin{figure}[H]
+  \centering
+  \includegraphics[width=0.9\textwidth]{UML.pdf}
+\end{figure}
 
 \subsection{Tensor Implementation}
 The \texttt{Tensor} class serves as the fundamental data structure, representing 4D arrays (Batch size, Channels, Height, Width). It uses a flat \texttt{std::vector<float>} for memory efficiency and provides strides-based indexing. Each tensor object also maintains a corresponding gradient vector of the same shape, facilitating automatic differentiation during backpropagation.
@@ -200,7 +151,16 @@ Where $y_c$ is the true label and $\hat{y}_c$ is the predicted probability. Opti
 The implementation leverages modern C++ features for performance and safety. Memory is managed through smart pointers, and the training loop is optimized to handle mini-batches.
 
 \subsection{Training Loop}
-The training process involves iterating over the dataset for a specified number of epochs. For each mini-batch:
+The training process involves iterating over the dataset for a specified number of epochs. The interaction between the core components during a single iteration is illustrated in Figure \ref{fig:workflow}.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=0.8\textwidth]{workflow.pdf}
+    \caption{Program workflow during a training iteration.}
+    \label{fig:workflow}
+\end{figure}
+
+For each mini-batch:
 \begin{enumerate}
     \item Load batch data and labels.
     \item Perform a forward pass through the network.
