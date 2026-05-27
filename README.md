@@ -20,7 +20,7 @@ This project was built as a final project for semester 4 of my studies. I've cho
 
 ## 🏗️ Architecture Pipeline
 
-The current engine successfully trains on the **CIFAR-10** dataset (10 classes of complex RGB images), achieving **~60.7% accuracy** on a purely CPU-driven architecture. 
+The current engine successfully trains on the **CIFAR-10** dataset (10 classes of complex RGB images), which I was using for the project. It achieves **~60.7% accuracy** on a purely CPU-driven architecture. 
 
 The pipeline structure:
 `Conv2D (3x3) -> ReLU -> MaxPooling (2x2) -> Conv2D (3x3) -> ReLU -> Flatten -> Dropout (0.3) -> Dense -> Softmax`
@@ -32,23 +32,23 @@ This project uses CMake. It is cross-platform but requires a compiler that suppo
 
 ### 1. Clone the Repository
 ```bash
-git clone [https://github.com/YOUR-USERNAME/cpp-cnn-framework.git](https://github.com/YOUR-USERNAME/cpp-cnn-framework.git)
+git clone [https://github.com/Th3Groke/cpp-cnn-framework.git](https://github.com/Th3Groke/cpp-cnn-framework.git)
 cd cpp-cnn-framework
+```
 
 ### 2. Prepare the dataset
 Download the [https://www.cs.toronto.edu/~kriz/cifar.html] CIFAR-10 binary dataset and place the `data_batch_X.bin` files into a `data/` directory at the root of the project.
+
 ### 3. Configure the network
 Setup the network in `main.cpp`
-### 4. Build with CMake
 
+### 4. Build with CMake
 ```bash
 cmake -B Build
 cmake --build build
 ```
 
-
 ### 5. Run the Network
 ```bash
 ./build/NeuralNet
 ```
-
