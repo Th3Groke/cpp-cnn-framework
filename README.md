@@ -37,7 +37,7 @@ cd cpp-cnn-framework
 ```
 
 ### 2. Prepare the dataset
-Download the [https://www.cs.toronto.edu/~kriz/cifar.html](CIFAR-10 binary dataset) and place the `data_batch_X.bin` files into a `data/` directory at the root of the project.
+Download the [CIFAR-10 binary dataset](https://www.cs.toronto.edu/~kriz/cifar.html) and place the `data_batch_X.bin` files into a `data/` directory at the root of the project.
 
 ### 3. Configure the network
 Setup the network in `main.cpp`
